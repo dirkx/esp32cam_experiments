@@ -22,6 +22,9 @@ void move_pid(float cogX, float cogY)
   // simple by telling our current relative error; i.e how far we
   // are off CENTER_CAM_X. And expect the PID to try to get this
   // error as close to zero as possible.
+  // note that we have a speed issue here - if both X and Y
+  // move with the same speed - then the head moves a square root\
+  // of two faster. 
   //
   float new_pan_pos = pidControllerPanAxis.Run(cogX - CENTER_CAM_X);
   float new_tilt_pos = pidControllerTiltAxis.Run(cogY - CENTER_CAM_Y);

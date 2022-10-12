@@ -45,7 +45,14 @@ static esp_err_t stream_handler(httpd_req_t *req)
   while (res == ESP_OK) {
 
     // Wait for a new jpeg - yield()ing to other tasks; come back here when convenient.
+    // or time out
+    unsigned long t = millis();
     while (!_jpg_new) {
+      if (millis() - t > 10*1000) {
+        // 10 seconds of no images - give up and close the connection.
+        httpd_resp_send_408(req);
+        return HTTPD_SOCK_ERR_TIMEOUT;
+      }
       yield();
     }
 
@@ -55,7 +62,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
     {
       std::lock_guard<std::mutex> lck(mutex);
       char * part_buf[128];
-      
+
       size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
       if (ESP_OK != (res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen)))
         break;

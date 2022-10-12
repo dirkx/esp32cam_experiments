@@ -35,7 +35,7 @@ void move_straight_away(float cogX, float cogY)
 //
 void move_relative(float cogX, float cogY)
 {
-  static unsigned long lst = 0;
+  static unsigned long lst = millis();
 
   // 1. how far is the camera off from what we look at ?
   //    and do this in (servo) degrees.
