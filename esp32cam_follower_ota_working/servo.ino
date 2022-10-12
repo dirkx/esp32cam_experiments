@@ -1,4 +1,26 @@
+Servo servo_pan;
+Servo servo_tilt;
+// Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33
+// you have to use a timer higher than 2, see https://www.esp32.com/viewtopic.php?t=11379
+int servoPin_pan = 14;
+int servoPin_tilt = 2;
+
+
 unsigned long ts = millis () ;   // time accounting.
+
+void setup_servo() {
+  pinMode(servoPin_pan, OUTPUT);
+  pinMode(servoPin_tilt, OUTPUT);
+
+  //https://stackoverflow.com/questions/64402915/esp32-cam-with-servo-control-wont-work-arduino-ide
+  //and
+  //https://www.esp32.com/viewtopic.php?t=11379
+  servo_pan.attach(servoPin_pan, 4);
+  servo_tilt.attach(servoPin_tilt, 5);
+
+  servo_pan.write(90);
+  servo_tilt.write(90);
+}
 
 void pan(int from, int too, int wait) {
   //Serial.println("panning");
