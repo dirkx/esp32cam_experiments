@@ -1,3 +1,6 @@
+#include <mutex>
+std::mutex mutex;
+
 //from https://www.electrorules.com/esp32-cam-video-streaming-web-server-works-with-home-assistant/
 #define PART_BOUNDARY "123456789000000000000987654321"
 
@@ -7,74 +10,69 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 
 httpd_handle_t stream_httpd = NULL;
 
-static void(*_frameHandlerCallBack)(camera_fb_t * current_frame) = NULL;
+size_t _jpg_buf_len = 0;
+uint8_t * _jpg_buf = NULL;
+bool _jpg_new = false;
+
+void stream_next_image(camera_fb_t * current_frame) {
+  size_t new_jpg_buf_len = 0;
+  uint8_t * new_jpg_buf = NULL;
+
+  if (!frame2jpg(current_frame, 80, &new_jpg_buf, &new_jpg_buf_len)) {
+    Serial.println("JPEG compression failed");
+    return;
+  }
+
+  {
+    // we protect the next lines with this mutex - so the image cannot
+    // be changed while a stream handler is still writing it out to
+    // a user.
+    std::lock_guard<std::mutex> lck(mutex);
+
+    if (_jpg_buf) free(_jpg_buf);
+
+    _jpg_buf = new_jpg_buf;
+    _jpg_buf_len = new_jpg_buf_len;
+    _jpg_new = true;
+  }
+}
 
 static esp_err_t stream_handler(httpd_req_t *req)
 {
-  camera_fb_t * fb = NULL;
   esp_err_t res = ESP_OK;
-  size_t _jpg_buf_len = 0;
-  uint8_t * _jpg_buf = NULL;
-  char * part_buf[64];
 
   res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
-  if (res != ESP_OK) {
-    return res;
-  }
+  while (res == ESP_OK) {
 
-  while (true) {
-    fb = esp_camera_fb_get();
-
-    if (!fb) {
-      Serial.println("Camera capture failed");
-      res = ESP_FAIL;
-    } else {
-      //camera_fb_t * rf =  fb; //set to fb to test
-      camera_fb_t * rf = fb;
-      if (_frameHandlerCallBack)
-        (*_frameHandlerCallBack)(fb);
-
-      bool jpeg_converted = frame2jpg(rf, 80, &_jpg_buf, &_jpg_buf_len);
-
-      ///esp_camera_fb_return(fb);
-      fb = NULL;
-      if (!jpeg_converted) {
-        Serial.println("JPEG compression failed");
-        res = ESP_FAIL;
-      }
+    // Wait for a new jpeg - yield()ing to other tasks; come back here when convenient.
+    while (!_jpg_new) {
+      yield();
     }
-    if (res == ESP_OK) {
+
+    // Protect the next lines with a mutex - to make sure that set_next_image()
+    // cannot change out image under our feet.
+    //
+    {
+      std::lock_guard<std::mutex> lck(mutex);
+      char * part_buf[128];
+      
       size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
-      res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
+      if (ESP_OK != (res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen)))
+        break;
+      if (ESP_OK != (res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len)))
+        break;
+      _jpg_new = false;
     }
-    if (res == ESP_OK) {
-      res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
-    }
-    if (res == ESP_OK) {
-      res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
-    }
-    if (fb) {
-      esp_camera_fb_return(fb);
-      fb = NULL;
-      _jpg_buf = NULL;
-    } else if (_jpg_buf) {
-      free(_jpg_buf);
-      _jpg_buf = NULL;
-    }
-    if (res != ESP_OK) {
+    if (ESP_OK != (res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY))))
       break;
-    }
-    //Serial.printf("MJPG: %uB\n",(uint32_t)(_jpg_buf_len));
   }
   return res;
 }
 
-void startCameraServer(void(*processFrameCallback)(camera_fb_t * current_frame))
+void startCameraServer()
 {
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
   config.server_port = 80;
-
-  _frameHandlerCallBack = processFrameCallback;
 
   httpd_uri_t index_uri = {
     .uri       = "/",
