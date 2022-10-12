@@ -8,13 +8,13 @@ Servo servo_tilt;
 #include <ArduinoOTA.h>
 #include <ESPmDNS.h>
 
-// (Initial) servo position - in degrees
-int pos_pan = 90;
-int pos_tilt = 125;
-
 // Neutral position - in degrees
 const float NEUTRAL_POS_X = 90;
 const float NEUTRAL_POS_Y = 125;
+
+// (Initial) servo position - in degrees
+int pos_pan = NEUTRAL_POS_X;
+int pos_tilt = NEUTRAL_POS_Y;
 
 const float CENTER_CAM_X = 0.5;
 const float CENTER_CAM_Y = 0.5;
@@ -83,6 +83,7 @@ void camera_and_movement_loop() {
 
   if (perc < 2) {
     // low confidence in what we see - let the servos move slowy to the center.
+    //
     m_attentionX = m_attentionX + (((NEUTRAL_POS_X - m_attentionX)) / 20);
     m_attentionY = m_attentionY + (((NEUTRAL_POS_Y - m_attentionY)) / 20);
 

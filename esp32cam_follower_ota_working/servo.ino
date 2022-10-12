@@ -15,8 +15,8 @@ void setup_servo() {
   servo_pan.attach(servoPin_pan, 4);
   servo_tilt.attach(servoPin_tilt, 5);
 
-  servo_pan.write(90);
-  servo_tilt.write(90);
+  servo_pan.write(pos_pan);
+  servo_tilt.write(tilt_pos);
 }
 
 void pan(int from, int too, int wait) {
