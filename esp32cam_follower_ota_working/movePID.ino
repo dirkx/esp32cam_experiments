@@ -12,14 +12,19 @@ PID_v2 pidControllerPanAxis(Kp, Ki, Kd, PID::Direct);
 PID_v2 pidControllerTiltAxis(Kp, Ki, Kd, PID::Direct);
 
 void setup_pid() {
-  pidControllerPanAxis.Start(CENTER_CAM_X, NEUTRAL_POS_X, CENTER_CAM_X);
-  pidControllerTiltAxis.Start(CENTER_CAM_Y, NEUTRAL_POS_Y, CENTER_CAM_Y);
+  pidControllerPanAxis.Start(0 /* current input */, pan_pos /* current servo position */, 0 /* desired input value */);
+  pidControllerTiltAxis.Start(0 /* current input */, tilt_pos/* current servo position */, 0  /* desired input value */);
 }
 
 void move_pid(float cogX, float cogY)
 {
-  float new_pan_pos = pidControllerPanAxis.Run(cogX);
-  float new_tilt_pos = pidControllerTiltAxis.Run(cogY);
+  // run the PID controller and get the new position. We keep the P/I/D
+  // simple by telling our current relative error; i.e how far we
+  // are off CENTER_CAM_X. And expect the PID to try to get this
+  // error as close to zero as possible.
+  //
+  float new_pan_pos = pidControllerPanAxis.Run(cogX - CENTER_CAM_X);
+  float new_tilt_pos = pidControllerTiltAxis.Run(cogY - CENTER_CAM_Y);
 
   Serial.print("Moving to x ");
   Serial.print((int)(new_pan_pos));

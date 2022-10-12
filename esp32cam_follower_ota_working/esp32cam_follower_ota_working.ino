@@ -2,7 +2,6 @@
 Servo servo_pan;
 Servo servo_tilt;
 
-
 #include <esp_camera.h>
 #include <WiFi.h>
 #include "esp_http_server.h"
@@ -74,7 +73,6 @@ void camera_and_movement_loop() {
   if (difference == NULL)
     return; // no difference yet - is the first image captured.
 
-
   float cogX, cogY; // center of gravity
 
   stream_next_image(current_frame);
@@ -104,10 +102,10 @@ void camera_and_movement_loop() {
   //
   // move_relative(cogX, cogY);
 
-  // Use a PID controller
+  // Use a PID controller.
+  //
   // move_pid(cogX, cogY);
 }
-
 
 
 void loop() {
