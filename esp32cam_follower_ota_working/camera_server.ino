@@ -49,7 +49,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
     unsigned long t = millis();
     while (!_jpg_new) {
       if (millis() - t > 10*1000) {
-        // 10 seconds of no images - give up and close the connection.
+        Serial.println("10 seconds of no images - give up and close the connection.");
         httpd_resp_send_408(req);
         return HTTPD_SOCK_ERR_TIMEOUT;
       }
