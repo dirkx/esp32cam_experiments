@@ -368,13 +368,17 @@ esp_err_t setup_camera() {
   config.pixel_format = PIXFORMAT_JPEG;
 #endif
 
+#ifdef CAMERA_GRAB_WHEN_EMPTY
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
+#endif
   config.jpeg_quality = 12;
   config.fb_count = 1;
 
+#if !defined(CAMERA_FB_IN_PSRAM) || !defined(CAMERA_FB_IN_DRAM)
   // Use PSRAM IC if present.
   //
   config.fb_location = psramFound() ? CAMERA_FB_IN_PSRAM : CAMERA_FB_IN_DRAM;
+#endif
 
   // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
   //                      for larger pre-allocated frame buffer.
@@ -382,7 +386,9 @@ esp_err_t setup_camera() {
     if (psramFound()) {
       config.jpeg_quality = 10;
       config.fb_count = 2;
+#ifdef CAMERA_GRAB_LATEST
       config.grab_mode = CAMERA_GRAB_LATEST;
+#endif
     } else {
       config.frame_size = FRAMESIZE_SVGA;
     }
