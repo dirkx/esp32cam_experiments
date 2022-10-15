@@ -8,6 +8,9 @@ Servo servo_pan;
 Servo servo_tilt;
 
 
+// Uncomment the next line if you want a Access Point
+//
+#define WIFI_AP_MODE
 
 #include <TLog.h>      // The T-Logging library.
 // Run a telnet service on the default port (23) which shows what is
@@ -59,27 +62,34 @@ void setup() {
   setup_camera();
   setup_servo();
 
+#ifdef WIFI_AP_MODE
+  WiFi.softAP(ssid, password);
+  IPAddress myIP = WiFi.softAPIP();
+  Log.printf("WiFi station broadcaasting on <%s>\n", ssid);
+#else
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Log.print(".");
   }
-
   Log.println("WiFi connected..!");
+  IPAddress myIP =WiFi.localIP();
+#endif
+
   delay(100);
 
   MDNS.begin("flowerbot-libby");
   // Log.begin();
 
   Log.print("Camera Stream Ready! Go to: http://");
-  Log.println(WiFi.localIP());
+  Log.println(myIP);
 
   Log.printf("Heap: Size: %.1f kB, Free: %.1f kB,, Min free: %.1f kB, Max Alloc: %.1f kB\n",
-                ESP.getHeapSize() / 1024.,
-                ESP.getFreeHeap() / 1024.,
-                ESP.getMinFreeHeap() / 1024.,
-                ESP.getMaxAllocHeap() / 1024.
-               );
+             ESP.getHeapSize() / 1024.,
+             ESP.getFreeHeap() / 1024.,
+             ESP.getMinFreeHeap() / 1024.,
+             ESP.getMaxAllocHeap() / 1024.
+            );
 
   // Start streaming web server
   startCameraServer();
