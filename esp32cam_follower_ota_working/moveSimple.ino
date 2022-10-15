@@ -1,12 +1,11 @@
-
 // here we assume that the camera 'see's the same as the
 // pan tilt platform; so if the image is in the center, the
 // pan tilt is at 90,90 degree's.
 //
 void move_straight_away(float cogX, float cogY)
 {
-  Serial.printf("COG is %.2f, %.2f\r\n", cogX, cogY);
-  Serial.printf("Servo attention is %.2f, %.2f\r\n", m_attentionX, m_attentionY);
+  Log.printf("COG is %.2f, %.2f\r\n", cogX, cogY);
+  Log.printf("Servo attention is %.2f, %.2f\r\n", m_attentionX, m_attentionY);
 
   // map from 0.0--1.0 normalized to servo degree space.
   // So cogX/Y is from 0..1 from entire left/bottom and right/top of what the camera can see.
@@ -20,10 +19,10 @@ void move_straight_away(float cogX, float cogY)
 
   // simple mode - move to the right place - we assume that
   // the camera is fixed.
-  Serial.print("Moving to x ");
-  Serial.print((int)(m_attentionX));
-  Serial.print(" and y ");
-  Serial.println((int)(m_attentionY));
+  Log.print("Moving to x ");
+  Log.print((int)(m_attentionX));
+  Log.print(" and y ");
+  Log.println((int)(m_attentionY));
 
   pan((int)pos_pan, (int)(m_attentionX), wait);
   tilt((int)pos_tilt, (int)(m_attentionY), wait);
@@ -68,12 +67,12 @@ void move_relative(float cogX, float cogY)
   float pos_pan_new  = pos_pan + delta_X  * speed / dT;
   float pos_tilt_new  = pos_tilt + delta_Y * speed / dT;
 
-  Serial.print("Moving to x ");
-  Serial.print((int)(pos_pan_new));
-  Serial.print(" and y ");
-  Serial.print((int)(pos_tilt_new));
-  Serial.print(" with speed ");
-  Serial.println(speed);
+  Log.print("Moving to x ");
+  Log.print((int)(pos_pan_new));
+  Log.print(" and y ");
+  Log.print((int)(pos_tilt_new));
+  Log.print(" with speed ");
+  Log.println(speed);
 
   // how much (in servo degrees) should at least move; anyting under that - no changes to the servo output.
   //

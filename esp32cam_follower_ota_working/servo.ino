@@ -16,11 +16,11 @@ void setup_servo() {
   servo_tilt.attach(servoPin_tilt, 5);
 
   servo_pan.write(pos_pan);
-  servo_tilt.write(tilt_pos);
+  servo_tilt.write(pos_tilt);
 }
 
 void pan(int from, int too, int wait) {
-  //Serial.println("panning");
+  //Log.println("panning");
   boolean forward = false;
   int position = pos_pan;
 
@@ -45,7 +45,7 @@ void pan(int from, int too, int wait) {
 }
 
 void tilt(int from, int too, int wait) {
-  //Serial.println("tilting");
+  //Log.println("tilting");
   boolean forward = false;
   int position = pos_tilt;
 
