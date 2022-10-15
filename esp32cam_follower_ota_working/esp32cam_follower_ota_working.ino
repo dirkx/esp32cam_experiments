@@ -71,7 +71,7 @@ void setup() {
   // Start the AP station.
   WiFi.softAP(ssid_tmp, password);
   IPAddress myIP = WiFi.softAPIP();
-  
+
   Log.printf("WiFi station broadcaasting on <%s>\n", ssid_tmp);
 #else
   WiFi.begin(ssid, password);
@@ -86,7 +86,7 @@ void setup() {
   delay(100);
 
   MDNS.begin("flowerbot-libby");
-  // Log.begin();
+  Log.begin();
 
   Log.print("Camera Stream Ready! Go to: http://");
   Log.println(myIP);
@@ -103,7 +103,6 @@ void setup() {
   ota_setup();
   setup_pid();
   setup_report_memory();
-
 }
 
 void camera_and_movement_loop() {
@@ -160,12 +159,12 @@ void camera_and_movement_loop() {
     pan((int)pos_pan, (int)(m_attentionX), wait);
     tilt((int)pos_tilt, (int)(m_attentionY), wait);
     return;
-  }
+  };
 
   // Camera is mounted fixed; pan and tilt above it and
   // with roughly same coordinate system.
   //
-  // move_straight_away(cogX, cogY);
+  move_straight_away(cogX, cogY);
 
   // Camera is mounted on the pan and tilt. We move the camera
   // when we move pan and tilt.
@@ -174,7 +173,7 @@ void camera_and_movement_loop() {
 
   // Use a PID controller.
   //
-  move_pid(cogX, cogY);
+  // move_pid(cogX, cogY);
 }
 
 
@@ -183,5 +182,5 @@ void loop() {
   ota_loop();
   camera_and_movement_loop();
   loop_report_memory();
-  loop_pid();
+  // loop_pid();
 }

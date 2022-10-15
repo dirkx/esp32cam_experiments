@@ -16,35 +16,35 @@ bool _jpg_new = false;
 static pthread_mutex_t mutex;
 
 void stream_next_image(camera_fb_t * current_frame) {
-  size_t new_jpg_buf_len = 0;
-  uint8_t * new_jpg_buf = NULL;
   static bool fail = false;
 
   const uint8_t JPEG_QUALITY = 80;
 
-  if (!frame2jpg(current_frame, JPEG_QUALITY, &new_jpg_buf, &new_jpg_buf_len)) {
-    if (fail == false)
-      Log.println("JPEG compression failing");
-    fail = true;
-    return;
-  };
-  if (fail) {
-    Log.println("JPEG compression working again");
-    fail = false;
-  };
-
   // we protect the next lines with this mutex - so the image cannot
   // be changed while a stream handler is still writing it out to
   // a user.
-  if (pthread_mutex_lock(&mutex) == 0) {
+  if (pthread_mutex_lock(&mutex) != 0) {
+    Log.println("Could not get a lock; skip image.");
+    return;
+  };
 
-    if (_jpg_buf) free(_jpg_buf);
+  if (_jpg_buf) free(_jpg_buf);
+  _jpg_buf = NULL;
 
-    _jpg_buf = new_jpg_buf;
-    _jpg_buf_len = new_jpg_buf_len;
+  if (frame2jpg(current_frame, JPEG_QUALITY, &_jpg_buf, &_jpg_buf_len)) {
     _jpg_new = true;
-    pthread_mutex_unlock(&mutex);
-  }
+    if (fail) {
+      Log.println("JPEG compression working again");
+      fail = false;
+    };
+  } else {
+    if (fail == false) {
+      Log.printf("JPEG compression failing\n");
+      fail = true;
+    }
+  };
+
+  pthread_mutex_unlock(&mutex);
 }
 
 static esp_err_t stream_handler(httpd_req_t *req)
@@ -72,7 +72,7 @@ static esp_err_t stream_handler(httpd_req_t *req)
       _jpg_buf = NULL;
       _jpg_new = false;
       pthread_mutex_unlock(&mutex);
-      
+
     }
 
     // Wait for a new jpeg - yield()ing to other tasks; come back here when convenient.

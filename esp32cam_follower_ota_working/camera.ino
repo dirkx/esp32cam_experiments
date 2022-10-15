@@ -329,11 +329,9 @@ static camera_config_t camera_config = {
   .frame_size = FRAMESIZE_QQVGA,//QQVGA-QXGA Do not use sizes above QVGA when not JPEG
   .jpeg_quality = 10, //0-63 lower number means higher quality
   .fb_count = 1, //if more than one, i2s runs in continuous mode. Use only with JPEG
-#if (ESP_IDF_VERSION_MAJOR < 4)
   ,  .fb_location = CAMERA_FB_IN_PSRAM // XXX added
   ,  .grab_mode = CAMERA_GRAB_WHEN_EMPTY // XXX added
-#endif
-  };
+};
 #endif
 
 esp_err_t setup_camera() {
@@ -363,29 +361,23 @@ esp_err_t setup_camera() {
   config.frame_size = FRAMESIZE_QQVGA; // was FRAMESIZE_UXGA;
   config.pixel_format = PIXFORMAT_GRAYSCALE; // for streaming
 
-#if (ESP_IDF_VERSION_MAJOR < 4)
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
-#endif
   config.jpeg_quality = 12;
   config.fb_count = 1;
 
-#if (ESP_IDF_VERSION_MAJOR < 4)
   // Use PSRAM IC if present.
   //
   config.fb_location = psramFound() ? CAMERA_FB_IN_PSRAM : CAMERA_FB_IN_DRAM;
-#endif
 
-  // if PSRAM IC present, init with UXGA resolution and higher JPEG quality
-  //                      for larger pre-allocated frame buffer.
+  Log.printf("Storing in %sRAM.\n", psramFound() ? "PS" : "D");
+  if (!psramFound() && ESP.getMaxAllocHeap() < 129 * 1024)
+    Log.println("If you get malloc() errors; check if it is possible to enable PSRAM in the Tools menu; that helps preserving DRAM");
+
   if (config.pixel_format == PIXFORMAT_JPEG) {
     if (psramFound()) {
       config.jpeg_quality = 10;
       config.fb_count = 2;
-#if (ESP_IDF_VERSION_MAJOR < 4)
       config.grab_mode = CAMERA_GRAB_LATEST;
-#endif
-    } else {
-      config.frame_size = FRAMESIZE_SVGA;
     }
   } else {
 #if CONFIG_IDF_TARGET_ESP32S3
