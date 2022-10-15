@@ -321,8 +321,7 @@ static camera_config_t camera_config = {
   .xclk_freq_hz = 20000000,
 
   .ledc_timer = LEDC_TIMER_0,
-  .ledc_channel = LEDC_CHANNEL_0,
-
+  .ledc_channel = LEDC_CHANNEL_0
 
   //https://forum.arduino.cc/t/esp32_cam-acces-and-process-image/677628/6
   //"you get 19200 bytes with is correct for 160x120 grayscale pixels on 8 bits"
@@ -330,9 +329,9 @@ static camera_config_t camera_config = {
   .frame_size = FRAMESIZE_QQVGA,//QQVGA-QXGA Do not use sizes above QVGA when not JPEG
   .jpeg_quality = 10, //0-63 lower number means higher quality
   .fb_count = 1, //if more than one, i2s runs in continuous mode. Use only with JPEG
-#f (ESP_IDF_VERSION_MAJOR < 4)
-  .fb_location = CAMERA_FB_IN_PSRAM, // XXX added
-  .grab_mode = CAMERA_GRAB_WHEN_EMPTY // XXX added
+#if (ESP_IDF_VERSION_MAJOR < 4)
+  ,  .fb_location = CAMERA_FB_IN_PSRAM // XXX added
+  ,  .grab_mode = CAMERA_GRAB_WHEN_EMPTY // XXX added
 #endif
   };
 #endif

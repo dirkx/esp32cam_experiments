@@ -63,9 +63,16 @@ void setup() {
   setup_servo();
 
 #ifdef WIFI_AP_MODE
-  WiFi.softAP(ssid, password);
+  // create an unique AP name - based on the SSID prefix.
+  //
+  char ssid_tmp[32];
+  snprintf(ssid_tmp, sizeof(ssid_tmp) - 1, "%s-%llX", ssid, ESP.getEfuseMac());
+
+  // Start the AP station.
+  WiFi.softAP(ssid_tmp, password);
   IPAddress myIP = WiFi.softAPIP();
-  Log.printf("WiFi station broadcaasting on <%s>\n", ssid);
+  
+  Log.printf("WiFi station broadcaasting on <%s>\n", ssid_tmp);
 #else
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -73,7 +80,7 @@ void setup() {
     Log.print(".");
   }
   Log.println("WiFi connected..!");
-  IPAddress myIP =WiFi.localIP();
+  IPAddress myIP = WiFi.localIP();
 #endif
 
   delay(100);
