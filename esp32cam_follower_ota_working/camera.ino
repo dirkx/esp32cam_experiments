@@ -330,10 +330,8 @@ static camera_config_t camera_config = {
   .frame_size = FRAMESIZE_QQVGA,//QQVGA-QXGA Do not use sizes above QVGA when not JPEG
   .jpeg_quality = 10, //0-63 lower number means higher quality
   .fb_count = 1, //if more than one, i2s runs in continuous mode. Use only with JPEG
-#if !defined(CAMERA_FB_IN_PSRAM) || !defined(CAMERA_FB_IN_DRAM)
+#f (ESP_IDF_VERSION_MAJOR < 4)
   .fb_location = CAMERA_FB_IN_PSRAM, // XXX added
-#endif
-#ifdef CAMERA_GRAB_WHEN_EMPTY
   .grab_mode = CAMERA_GRAB_WHEN_EMPTY // XXX added
 #endif
   };
@@ -366,18 +364,13 @@ esp_err_t setup_camera() {
   config.frame_size = FRAMESIZE_QQVGA; // was FRAMESIZE_UXGA;
   config.pixel_format = PIXFORMAT_GRAYSCALE; // for streaming
 
-#if 0
-  config.frame_size = FRAMESIZE_UXGA; // was FRAMESIZE_UXGA;
-  config.pixel_format = PIXFORMAT_JPEG;
-#endif
-
-#ifdef CAMERA_GRAB_WHEN_EMPTY
+#if (ESP_IDF_VERSION_MAJOR < 4)
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
 #endif
   config.jpeg_quality = 12;
   config.fb_count = 1;
 
-#if !defined(CAMERA_FB_IN_PSRAM) || !defined(CAMERA_FB_IN_DRAM)
+#if (ESP_IDF_VERSION_MAJOR < 4)
   // Use PSRAM IC if present.
   //
   config.fb_location = psramFound() ? CAMERA_FB_IN_PSRAM : CAMERA_FB_IN_DRAM;
@@ -389,7 +382,7 @@ esp_err_t setup_camera() {
     if (psramFound()) {
       config.jpeg_quality = 10;
       config.fb_count = 2;
-#ifdef CAMERA_GRAB_LATEST
+#if (ESP_IDF_VERSION_MAJOR < 4)
       config.grab_mode = CAMERA_GRAB_LATEST;
 #endif
     } else {
