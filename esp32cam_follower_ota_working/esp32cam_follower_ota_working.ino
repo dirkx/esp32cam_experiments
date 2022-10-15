@@ -70,9 +70,10 @@ void setup() {
 
   // Start the AP station.
   WiFi.softAP(ssid_tmp, password);
+  WiFi.softAPsetHostname(ssid_tmp);
   IPAddress myIP = WiFi.softAPIP();
-
-  Log.printf("WiFi station broadcaasting on <%s>\n", ssid_tmp);
+  
+  Log.printf("WiFi station broadcaasting on <%s>\n", WiFi.softAPSSID().c_str());
 #else
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {

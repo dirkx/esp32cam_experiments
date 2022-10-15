@@ -30,7 +30,7 @@ void move_pid(float cogX, float cogY)
   Log.printf("CoG %.1f,%.1f\n", cogX, cogY);
   targetX = cogX - CENTER_CAM_X;
   targetY = cogY - CENTER_CAM_Y;
-  Log.printf("Error from center %.1f,%.1f\n", targetX, targetY);
+  Log.printf("Distance from center %.1f,%.1f\n", targetX, targetY);
 
   last_update = millis();
   return;
